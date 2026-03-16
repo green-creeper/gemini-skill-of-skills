@@ -4,7 +4,7 @@ const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const CRAWL_SCRIPT = path.join(__dirname, '../skill-generator/scripts/crawl.cjs');
+const CRAWL_SCRIPT = path.join(__dirname, '../scripts/crawl.cjs');
 const OUTPUT_DIR = path.join(__dirname, 'test_output');
 const TARGET_URL = 'https://www.json.org/json-en.html';
 

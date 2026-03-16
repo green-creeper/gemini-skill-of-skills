@@ -16,13 +16,13 @@ Provide one or more URLs and an optional depth (default is 2).
 Example: "Research the documentation at https://axios-http.com/docs/intro and create a skill for it."
 
 ### 2. Execution
-The skill uses internal scripts to process the documentation:
-- **Crawl**: `node scripts/crawl.cjs <url> <depth> <temp_dir>`
-- **Scaffold**: `node scripts/scaffold.cjs <skill_name> <temp_dir> <output_dir>`
+The skill uses internal scripts to process the documentation. To ensure smooth execution, ALWAYS run these from the project root:
+- **Crawl**: `node scripts/crawl.cjs <url> <depth> ./tmp/<name>`
+- **Scaffold**: `node scripts/scaffold.cjs <name> ./tmp/<name> ./<name>-skill`
 
 ### 3. Refinement (Crucial)
-After scaffolding, the agent MUST review the Markdown files in the newly created `<skill_name>/references/` directory. 
-- **Identify and remove** any "meaningless data" or "scrapping artifacts" such as:
+The scripts include automated heuristic cleaning (RTD, Sphinx, Gitbook, Docusaurus). However, the agent MUST still review the Markdown files in the newly created `<name>-skill/references/` directory. 
+- **Identify and remove** any remaining "meaningless data" or "scrapping artifacts" such as:
     - Leftover navigation menus or footer links.
     - "Sign in" or "Log in" prompts.
     - Cookie consent banners or privacy policy fragments.

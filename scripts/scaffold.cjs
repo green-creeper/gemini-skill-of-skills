@@ -13,18 +13,57 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { execSync } = require('node:child_process');
 
-// Attempt to find system tools dynamically or use defaults
+// Attempt to find system tools dynamically
 const findSystemTool = (toolName) => {
+  const possiblePaths = [];
+
   try {
-    // Check common locations or use 'npm root -g' logic
-    const gRoot = execSync('npm root -g', { encoding: 'utf8' }).trim();
-    const tool = path.join(gRoot, '@google/gemini-cli/node_modules/@google/gemini-cli-core/dist/src/skills/builtin/skill-creator/scripts', toolName);
-    if (fs.existsSync(tool)) return tool;
+    const gPath = execSync('which gemini', { encoding: 'utf8' }).trim();
+    if (gPath) {
+      // If gemini is a symlink (like in /usr/local/bin), follow it to find its true location
+      const realPath = fs.realpathSync(gPath);
+      // Usually, gemini is in /path/to/node_modules/@google/gemini-cli/dist/src/index.js
+      // or similar. We want to find the root of the package.
+      let current = realPath;
+      while (current !== path.dirname(current)) {
+        if (fs.existsSync(path.join(current, 'package.json'))) {
+          const pkg = JSON.parse(fs.readFileSync(path.join(current, 'package.json'), 'utf8'));
+          if (pkg.name === '@google/gemini-cli') {
+            possiblePaths.push(path.join(current, 'node_modules/@google/gemini-cli-core/dist/src/skills/builtin/skill-creator/scripts', toolName));
+            possiblePaths.push(path.join(current, 'dist/src/skills/builtin/skill-creator/scripts', toolName));
+            break;
+          }
+        }
+        current = path.dirname(current);
+      }
+    }
   } catch (e) {}
-  
-  // Fallback to the hardcoded path from development environment
-  const fallback = path.join('/Users/andrii/.nvm/versions/node/v25.2.1/lib/node_modules/@google/gemini-cli/node_modules/@google/gemini-cli-core/dist/src/skills/builtin/skill-creator/scripts', toolName);
-  if (fs.existsSync(fallback)) return fallback;
+
+  try {
+    const lRoot = execSync('npm root', { encoding: 'utf8' }).trim();
+    possiblePaths.push(path.join(lRoot, '@google/gemini-cli/node_modules/@google/gemini-cli-core/dist/src/skills/builtin/skill-creator/scripts', toolName));
+  } catch (e) {}
+
+  // Common user paths (macOS/Linux)
+  const home = process.env.HOME || process.env.USERPROFILE;
+  if (home) {
+    possiblePaths.push(path.join(home, '.nvm/versions/node/*/lib/node_modules/@google/gemini-cli/node_modules/@google/gemini-cli-core/dist/src/skills/builtin/skill-creator/scripts', toolName));
+  }
+
+  for (const p of possiblePaths) {
+    // Handle glob-like patterns manually or just direct check
+    if (p.includes('*')) {
+      try {
+        const parentDir = path.dirname(p.split('*')[0]);
+        if (fs.existsSync(parentDir)) {
+          const matched = execSync(`ls ${p} 2>/dev/null`, { encoding: 'utf8' }).split('\n')[0].trim();
+          if (matched && fs.existsSync(matched)) return matched;
+        }
+      } catch (e) {}
+    } else if (fs.existsSync(p)) {
+      return p;
+    }
+  }
   
   return null;
 };

@@ -7,10 +7,10 @@ By providing a documentation URL, the generator recursively crawls the site, ext
 ## 🚀 Key Features
 
 - **Recursive Crawler**: Efficiently navigates documentation sites while respecting domain boundaries.
-- **Heuristic Extraction**: Strips navigation bars, footers, and ads to extract only the core technical content.
-- **Polyglot Scripting**: Can be used to research and generate skills for any library or framework (Python, Node.js, Go, etc.).
+- **Improved Heuristic Extraction**: Automatically strips navigation bars, sidebars, footers, and ads. Specialized for ReadTheDocs, Sphinx, Gitbook, and Docusaurus.
+- **Double-Title Prevention**: Intelligently handles H1 headers to avoid redundant titles in Markdown.
+- **Portable Scaffolding**: Improved discovery of `gemini-cli` system tools across different environments.
 - **Auto-Scaffolding**: Automates the creation of `SKILL.md`, `references/`, and the final packaging process.
-- **Self-Refinement**: Includes built-in instructions for the agent to clean up and audit crawled data before finalization.
 
 ## 📦 Installation
 

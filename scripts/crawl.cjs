@@ -70,25 +70,41 @@ async function crawl(targetUrl, maxDepth = 2, outputDir = './output', currentDep
       title = targetUrl.split('/').pop().replace('.json', '');
     } else if (contentType.includes('text/html')) {
       const $ = cheerio.load(response.data);
-      title = $('title').text().trim() || 'page';
+      title = $('h1').first().text().trim() || $('title').text().trim() || 'page';
       
       // Target common documentation content areas
-      const contentSelectors = ['main', 'article', '.content', '#content', '.documentation', '.docs-content', 'body'];
+      const contentSelectors = [
+        '[role="main"]', 'main', 'article', '.wy-nav-content', 
+        '.content', '#content', '.documentation', '.docs-content', 'body'
+      ];
       let contentHtml = '';
       for (const selector of contentSelectors) {
         const el = $(selector);
         if (el.length > 0) {
           // Clone to avoid modifying the original if we need to try another selector
           const clone = el.clone();
-          // Strip noise
-          clone.find('nav, footer, script, style, .sidebar, .ads, header').remove();
+          // Strip noise (extended list for RTD, Sphinx, Gitbook, Docusaurus)
+          clone.find(`
+            nav, footer, script, style, .sidebar, .ads, header, 
+            .wy-nav-side, .wy-nav-top, .rst-breadcrumbs, .rst-footer-buttons,
+            .nav-side, .nav-top, #nav, .header, .footer,
+            .search-box, .language-selector, .sign-in, .login, .cookie-banner,
+            .edit-page, .github-link, .menu, .toc, .table-of-contents
+          `.replace(/\s+/g, '')).remove();
+          
           contentHtml = clone.html();
           if (contentHtml && contentHtml.length > 200) break; // Heuristic: valid content usually > 200 chars
         }
       }
 
       markdown = turndownService.turndown(contentHtml || response.data);
-      markdown = `# ${title}\n\nSource: ${targetUrl}\n\n${markdown}`;
+      
+      // Prevent double H1 if the markdown already starts with it
+      if (!markdown.trim().startsWith('# ')) {
+        markdown = `# ${title}\n\n${markdown}`;
+      }
+      
+      markdown = `Source: ${targetUrl}\n\n${markdown}`;
 
       // Find more links to follow
       if (currentDepth < maxDepth) {
@@ -110,8 +126,8 @@ async function crawl(targetUrl, maxDepth = 2, outputDir = './output', currentDep
     }
 
     // Save output
-    const safeTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase().substring(0, 50);
-    const fileName = `${safeTitle}_${Math.random().toString(36).substring(7)}.md`;
+    const urlPath = urlObj.pathname.replace(/\/$/, '').replace(/\W/g, '_') || 'index';
+    const fileName = `${urlPath.substring(0, 40)}_${Math.random().toString(36).substring(7)}.md`;
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
     fs.writeFileSync(path.join(outputDir, fileName), markdown);
 
