@@ -91,6 +91,7 @@ async function main() {
 
   const skillName = args[0];
   const inputDocsDir = path.resolve(args[1]);
+  // Use CWD if output directory is not provided, ensuring it's never relative to the script
   const outputSkillDir = args[2] ? path.resolve(args[2]) : process.cwd();
 
   if (!fs.existsSync(inputDocsDir)) {
@@ -98,7 +99,15 @@ async function main() {
     process.exit(1);
   }
 
+  const docs = fs.readdirSync(inputDocsDir).filter(f => f.endsWith('.md'));
+  if (docs.length === 0) {
+    console.error(`❌ Error: No documentation files found in ${inputDocsDir}. Did the crawl succeed?`);
+    process.exit(1);
+  }
+
   console.log(`🚀 Scaffolding skill: ${skillName}`);
+  console.log(`- Documentation source: ${inputDocsDir} (${docs.length} files)`);
+  console.log(`- Destination: ${outputSkillDir}`);
 
   try {
     // 1. Initialize the skill structure
