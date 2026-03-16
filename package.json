@@ -1,0 +1,27 @@
+{
+  "name": "gemini-skill-generator",
+  "version": "1.0.0",
+  "description": "A meta-skill for Gemini CLI to generate documentation-based skills recursively.",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "crawl": "node scripts/crawl.cjs",
+    "scaffold": "node scripts/scaffold.cjs",
+    "test": "node tests/test_crawler.cjs"
+  },
+  "keywords": [
+    "gemini-cli",
+    "skill",
+    "crawler",
+    "documentation",
+    "ai-agent"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "cheerio": "^1.0.0-rc.12",
+    "turndown": "^7.1.2",
+    "p-limit": "^3.1.0"
+  }
+}
