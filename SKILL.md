@@ -5,37 +5,31 @@ description: Generate specialized Gemini CLI skills from documentation URLs. Use
 
 # Skill Generator
 
-## Overview
-
-This skill allows you to autonomously research any technology by providing a URL. It recursively crawls the documentation, converts it to clean Markdown, organizes it into a structured reference base, and packages it into a new Gemini CLI skill (`.skill` file).
+## CRITICAL MANDATES (STOP AND READ)
+- **NO PRE-RESEARCH:** Do NOT use `web_fetch`, `google_web_search`, or `codebase_investigator` to "research" the documentation or the generator itself. The generator IS the research tool.
+- **NO EXPLORATION:** Do NOT use `ReadFolder` or `ReadFile` on the generator's internal scripts or `node_modules`. Assume they are broken/missing and just run `npm install` first.
+- **ROOT EXECUTION:** ALWAYS execute all commands from the **workspace root**. Never `cd` into the skill directory.
+- **ABSOLUTE PATHS:** Use absolute paths for the temporary directory to avoid confusion during context shifts.
 
 ## Workflow
 
-### 1. Discovery & Input
-Provide one or more URLs and an optional depth (default is 2).
-Example: "Research the documentation at https://axios-http.com/docs/intro and create a skill for it."
+### 1. Bootstrap (Mandatory First Step)
+Before doing anything else, ensure dependencies are installed in the generator's directory:
+`npm install --prefix <path_to_generator>`
 
-### 2. Execution
-The skill uses internal scripts to process the documentation. To ensure smooth execution, ALWAYS run these from the project root:
-- **Crawl**: `node scripts/crawl.cjs <url> <depth> ./tmp/<name>`
-- **Scaffold**: `node scripts/scaffold.cjs <name> ./tmp/<name> ./<name>-skill`
+### 2. Execution (The "One-Two Punch")
+Run these two commands sequentially. Do NOT wait for user feedback between them. Use `/Users/andrii/.gemini/tmp/skill-of-skill/<name>` as the absolute temp path.
 
-### 3. Efficiency & Autonomy (Strict)
-To maintain context efficiency and speed, follow these mandates:
-- **No Pre-Exploration:** Do not use `ReadFolder` or `ReadFile` on the generator's internal scripts or `node_modules` before starting. Assume they are ready.
-- **Sequential Execution:** Run the `Crawl` and `Scaffold` commands immediately. Do not wait for user confirmation between these steps unless an error occurs.
-- **Trust the Cleaning:** The scripts handle most clutter. Do not spend turns reading every generated file to verify quality. Perform a single `ls` check at the end to verify the skill was created.
-- **No Speculative Fetching:** Do not use `web_fetch` to "investigate" the documentation site or verify links. Trust the crawler's output.
+1. **Crawl**: `node <path_to_generator>/scripts/crawl.cjs <url> <depth> /Users/andrii/.gemini/tmp/skill-of-skill/<name>`
+2. **Scaffold**: `node <path_to_generator>/scripts/scaffold.cjs <name> /Users/andrii/.gemini/tmp/skill-of-skill/<name> ./<name>-skill`
 
-### 4. Refinement
-If the documentation is particularly messy, you may perform a surgical cleanup of the `references/` directory.
-- **Identify and remove** remaining "meaningless data" such as cookie banners or navigation fragments.
-- **Surgically clean** files only if they significantly degrade the quality of information.
+### 3. Efficiency & Autonomy
+- **Trust the Tools:** Do not spend turns verifying if files were created. If the command exits with code 0, move to the next step.
+- **No Speculative Fetching:** Trust the crawler. If it visits 0 pages, only then investigate.
 
-### 4. Review & Install
-After refinement, provide a summary of the cleaned content and the path to the `.skill` file.
-You can then install it using:
-`gemini skills install ./<skill_name>.skill --scope workspace`
+### 4. Installation
+Install the skill using the `--yes` flag to avoid interactive prompts:
+`gemini skills install ./<name>-skill/<name>.skill --scope workspace --yes`
 
 ## Guidelines for Use
 

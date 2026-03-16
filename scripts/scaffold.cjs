@@ -73,7 +73,12 @@ const PACKAGE_SKILL_PATH = findSystemTool('package_skill.cjs');
 
 if (!INIT_SKILL_PATH || !PACKAGE_SKILL_PATH) {
   console.error('❌ Error: Could not find gemini-cli skill-creator scripts.');
-  console.error('Please ensure gemini-cli is installed globally or update the paths in scripts/scaffold.cjs');
+  console.error('Searched in:');
+  console.error('- npm root -g');
+  console.error('- npm root');
+  console.error('- which gemini');
+  console.error('- ~/.nvm/versions/node/...');
+  console.error('\nPlease ensure gemini-cli is installed globally or update the paths manually in scripts/scaffold.cjs');
   process.exit(1);
 }
 

@@ -140,9 +140,9 @@ async function crawl(targetUrl, maxDepth = 2, outputDir = './output', currentDep
     const fileName = `${hostPart}_${pathPart.substring(0, 50)}.md`;
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
     
-    // Check if file exists and append if it does (to avoid losing data from same-named paths)
     const filePath = path.join(outputDir, fileName);
     fs.writeFileSync(filePath, markdown);
+    console.log(`[Depth ${currentDepth}] Saved to: ${filePath}`);
 
   } catch (err) {
     console.error(`Failed to crawl ${targetUrl}: ${err.message}`);
@@ -162,7 +162,8 @@ async function run() {
 
   try {
     await crawl(startUrl, depth, out);
-    console.log(`Crawl complete. Visited ${visited.size} pages.`);
+    const savedFiles = fs.existsSync(out) ? fs.readdirSync(out).filter(f => f.endsWith('.md')) : [];
+    console.log(`Crawl complete. Visited ${visited.size} pages. Saved ${savedFiles.length} documentation files to ${out}.`);
   } catch (err) {
     console.error(`Crawl failed: ${err.message}`);
     process.exit(1);
