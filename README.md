@@ -14,7 +14,19 @@ By providing a documentation URL, the generator recursively crawls the site, ext
 
 ## 📦 Installation
 
-To use this generator as a skill in your workspace:
+To install this generator directly from GitHub into your **user scope** (available globally):
+
+```bash
+gemini skills install https://github.com/green-creeper/gemini-skill-of-skills.git
+```
+
+Alternatively, to install it for a specific **workspace scope**:
+
+```bash
+gemini skills install https://github.com/green-creeper/gemini-skill-of-skills.git --scope workspace
+```
+
+### Manual Installation (Development)
 
 1. Clone this repository.
 2. Install dependencies:
@@ -25,7 +37,7 @@ To use this generator as a skill in your workspace:
    ```bash
    node scripts/scaffold.cjs skill-generator ./references .
    ```
-4. Install it to your Gemini CLI:
+4. Install the local package:
    ```bash
    gemini skills install ./skill-generator.skill --scope workspace
    ```
