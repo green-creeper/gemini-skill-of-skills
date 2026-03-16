@@ -87,9 +87,11 @@ async function crawl(targetUrl, maxDepth = 2, outputDir = './output', currentDep
           clone.find(`
             nav, footer, script, style, .sidebar, .ads, header, 
             .wy-nav-side, .wy-nav-top, .rst-breadcrumbs, .rst-footer-buttons,
+            .wy-menu-vertical, .wy-side-scroll, .wy-side-nav-search,
             .nav-side, .nav-top, #nav, .header, .footer,
             .search-box, .language-selector, .sign-in, .login, .cookie-banner,
-            .edit-page, .github-link, .menu, .toc, .table-of-contents
+            .edit-page, .github-link, .menu, .toc, .table-of-contents,
+            .admonition-title, .headerlink
           `.replace(/\s+/g, '')).remove();
           
           contentHtml = clone.html();
@@ -112,24 +114,35 @@ async function crawl(targetUrl, maxDepth = 2, outputDir = './output', currentDep
         $('a[href]').each((_, el) => {
           try {
             const href = $(el).attr('href');
+            if (!href) return;
+            // Basic normalization: resolve relative to current URL
             const absoluteUrl = new URL(href, targetUrl);
-            // Only crawl same origin and same base path (usually docs are under a subpath)
+            // Only crawl same origin
             if (absoluteUrl.origin === urlObj.origin && !absoluteUrl.hash) {
-                links.push(absoluteUrl.href);
+                // Ensure it's not a common static asset
+                if (!absoluteUrl.pathname.match(/\.(png|jpg|jpeg|gif|svg|pdf|zip|gz|tar|js|css)$/i)) {
+                    links.push(absoluteUrl.href);
+                }
             }
           } catch (e) { /* ignore invalid URLs */ }
         });
 
+        // Unique links only
+        const uniqueLinks = [...new Set(links)];
         // Parallel crawl with limit
-        await Promise.all(links.map(link => limit(() => crawl(link, maxDepth, outputDir, currentDepth + 1))));
+        await Promise.all(uniqueLinks.map(link => limit(() => crawl(link, maxDepth, outputDir, currentDepth + 1))));
       }
     }
 
     // Save output
-    const urlPath = urlObj.pathname.replace(/\/$/, '').replace(/\W/g, '_') || 'index';
-    const fileName = `${urlPath.substring(0, 40)}_${Math.random().toString(36).substring(7)}.md`;
+    const hostPart = urlObj.hostname.replace(/\./g, '_');
+    const pathPart = urlObj.pathname.replace(/\/$/, '').replace(/\W/g, '_') || 'index';
+    const fileName = `${hostPart}_${pathPart.substring(0, 50)}.md`;
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir, { recursive: true });
-    fs.writeFileSync(path.join(outputDir, fileName), markdown);
+    
+    // Check if file exists and append if it does (to avoid losing data from same-named paths)
+    const filePath = path.join(outputDir, fileName);
+    fs.writeFileSync(filePath, markdown);
 
   } catch (err) {
     console.error(`Failed to crawl ${targetUrl}: ${err.message}`);

@@ -20,14 +20,17 @@ The skill uses internal scripts to process the documentation. To ensure smooth e
 - **Crawl**: `node scripts/crawl.cjs <url> <depth> ./tmp/<name>`
 - **Scaffold**: `node scripts/scaffold.cjs <name> ./tmp/<name> ./<name>-skill`
 
-### 3. Refinement (Crucial)
-The scripts include automated heuristic cleaning (RTD, Sphinx, Gitbook, Docusaurus). However, the agent MUST still review the Markdown files in the newly created `<name>-skill/references/` directory. 
-- **Identify and remove** any remaining "meaningless data" or "scrapping artifacts" such as:
-    - Leftover navigation menus or footer links.
-    - "Sign in" or "Log in" prompts.
-    - Cookie consent banners or privacy policy fragments.
-    - Language selectors (e.g., "[English] [中文] [Deutsch]").
-- **Surgically clean** the files to ensure only high-signal documentation remains.
+### 3. Efficiency & Autonomy (Strict)
+To maintain context efficiency and speed, follow these mandates:
+- **No Pre-Exploration:** Do not use `ReadFolder` or `ReadFile` on the generator's internal scripts or `node_modules` before starting. Assume they are ready.
+- **Sequential Execution:** Run the `Crawl` and `Scaffold` commands immediately. Do not wait for user confirmation between these steps unless an error occurs.
+- **Trust the Cleaning:** The scripts handle most clutter. Do not spend turns reading every generated file to verify quality. Perform a single `ls` check at the end to verify the skill was created.
+- **No Speculative Fetching:** Do not use `web_fetch` to "investigate" the documentation site or verify links. Trust the crawler's output.
+
+### 4. Refinement
+If the documentation is particularly messy, you may perform a surgical cleanup of the `references/` directory.
+- **Identify and remove** remaining "meaningless data" such as cookie banners or navigation fragments.
+- **Surgically clean** files only if they significantly degrade the quality of information.
 
 ### 4. Review & Install
 After refinement, provide a summary of the cleaned content and the path to the `.skill` file.

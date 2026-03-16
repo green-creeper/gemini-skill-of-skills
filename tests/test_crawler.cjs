@@ -28,7 +28,15 @@ if (files.length === 0) {
   process.exit(1);
 }
 
-const content = fs.readFileSync(path.join(OUTPUT_DIR, files[0]), 'utf8');
+// Find the generated file (naming now includes hostname and path)
+const generatedFile = files.find(f => f.startsWith('www_json_org') && f.endsWith('.md'));
+if (!generatedFile) {
+  console.error('❌ Crawler validation failed: Filename does not match expected pattern');
+  console.log('Files found:', files);
+  process.exit(1);
+}
+
+const content = fs.readFileSync(path.join(OUTPUT_DIR, generatedFile), 'utf8');
 if (content.includes('# ') && content.includes('Source: ' + TARGET_URL)) {
   console.log('✅ Crawler basic validation passed');
 } else {
